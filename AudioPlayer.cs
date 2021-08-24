@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NAudio.Wave;
 
 namespace VoiceRecorder.Audio
@@ -8,11 +9,12 @@ namespace VoiceRecorder.Audio
 		private WaveOut waveOut;
 		private TrimWaveStream inStream;
 
-		public void LoadFile(string path)
+		public void LoadFile(Stream inputStream)
 		{
 			CloseWaveOut();
 			CloseInStream();
-			inStream = new TrimWaveStream(new WaveFileReader(path));
+			inputStream.Position = 0;
+			inStream = new TrimWaveStream(new WaveFileReader(inputStream));
 		}
 
 		public void Play()
@@ -38,6 +40,8 @@ namespace VoiceRecorder.Audio
 		void OnPlaybackStopped(object sender, StoppedEventArgs e)
 		{
 			PlaybackState = PlaybackState.Stopped;
+			CloseWaveOut();
+			CloseInStream();
 		}
 
 		public void Stop()

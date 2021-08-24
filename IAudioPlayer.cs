@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
+using NAudio.Wave;
 
 namespace VoiceRecorder.Audio
 {
 	public interface IAudioPlayer : IDisposable
 	{
-		void LoadFile(string path);
+		void LoadFile(WaveStream inputStream);
 		void Play();
 		void Stop();
 		TimeSpan CurrentPosition { get; set; }

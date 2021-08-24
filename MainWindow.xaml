@@ -3,12 +3,60 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VoiceRecorder"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-		<Button Content="Start" HorizontalAlignment="Left" Margin="387,203,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        xmlns:local="clr-namespace:VoiceRecorder" xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+		mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized" >
+	<Grid Margin="0,0,0,5">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition></ColumnDefinition>
+			<ColumnDefinition></ColumnDefinition>
+			<ColumnDefinition></ColumnDefinition>
+		</Grid.ColumnDefinitions>
+
+		<Grid.RowDefinitions>
+			<RowDefinition></RowDefinition>
+			<RowDefinition></RowDefinition>
+			<RowDefinition></RowDefinition>
+		</Grid.RowDefinitions>
+
+		<StackPanel Grid.Column="0" Grid.Row="0" VerticalAlignment="Top">
+			<Button Padding="10" Margin="10" Click="Settings_Click">Settings</Button>
+			<Popup Name="Settings" StaysOpen="false" >
+				<StackPanel Background="White">
+					<TextBox Margin="10">Input device</TextBox>
+					<ComboBox ItemsSource="{Binding Path=IODevices}" Width="auto"
+					          Margin="10"
+					          DisplayMemberPath="DisplayName"
+					          SelectedValuePath="Id"
+					/>
+					<TextBox Margin="10">Output device</TextBox>
+				</StackPanel>
+			</Popup>
+		</StackPanel>
+		<Image Grid.Column="1" Grid.Row="1" Source="microphone.png"/>
+
+		<StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
+			<Button Name ="Play" Padding="10" Height ="50" Width ="50" Margin="10" Click="Play_Click" Visibility ="Hidden">Play</Button>
+			<Button Name ="StartPause" Padding="10" Height ="50" Width ="50" Margin="10" Click="Start_Pause_Click">Start</Button>
+			<Button Name ="Stop" Padding="10" Height ="50" Width ="50" Margin="10" Click="Stop_Click" Visibility ="Hidden">Stop</Button>
+		</StackPanel>
+
+
+		<!--<Button Name="StartButton" Grid.Column="1" HorizontalAlignment="Left" Margin="76,23,0,0" Grid.Row="2" VerticalAlignment="Top" Content="Start" RenderTransformOrigin="0.5,0.5" Height="89" Width="109" Click="StartButton_Click" >
+			<Button.RenderTransform>
+				<TransformGroup>
+					<ScaleTransform/>
+					<SkewTransform/>
+					<RotateTransform Angle="0.308"/>
+					<TranslateTransform/>
+				</TransformGroup>
+			</Button.RenderTransform>
+		</Button>-->
+
+		<!--<Image Grid.Column="1" HorizontalAlignment="Left" Height="118" Margin="81,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="114" RenderTransformOrigin="0.443,0.534"/>-->
+
+		<!--<Button Content="Start" HorizontalAlignment="Left" Margin="387,203,0,0" VerticalAlignment="Top" Click="Button_Click"/>
 		<Button Content="Stop" HorizontalAlignment="Left" Margin="516,213,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-		<Button Content="Play" HorizontalAlignment="Left" Margin="460,297,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+		<Button Content="Play" HorizontalAlignment="Left" Margin="460,297,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>-->
 	</Grid>
 </Window>

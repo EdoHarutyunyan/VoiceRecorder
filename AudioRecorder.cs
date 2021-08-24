@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using NAudio.Wave;
 using NAudio.Mixer;
@@ -10,6 +12,11 @@ namespace VoiceRecorder.Audio
 		private WaveIn m_waveIn;
 		private RecordingState m_recordingState;
 		private WaveFileWriter m_writer;
+
+
+		public MemoryStream m_memoryStream { get; private set; }
+
+
 		private string m_fileName { get; set; }
 		private int m_recordingDevice { get; set; }
 		public event EventHandler Stopped = delegate { };
@@ -24,18 +31,23 @@ namespace VoiceRecorder.Audio
 
 		private void InitializeRecorder()
 		{
-			m_writer = new WaveFileWriter(m_fileName, m_waveIn.WaveFormat);
+
+			m_memoryStream = new MemoryStream();
 
 			m_waveIn.DeviceNumber = m_recordingDevice;
 			m_waveIn.DataAvailable += OnDataAvailable;
 			m_waveIn.RecordingStopped += OnRecordingStopped;
-			m_waveIn.StartRecording();
 		}
 
 		void OnRecordingStopped(object sender, StoppedEventArgs e)
 		{
-			m_recordingState = RecordingState.Stopped;
-			m_writer.Dispose();
+			if (m_recordingState == RecordingState.Stopped)
+			{
+				m_writer = new WaveFileWriter(m_fileName, m_waveIn.WaveFormat);
+				WriteToFile(m_memoryStream.GetBuffer(), (int)m_memoryStream.Length);
+				m_writer.Dispose();
+			}
+
 			Stopped(this, EventArgs.Empty);
 		}
 
@@ -52,6 +64,7 @@ namespace VoiceRecorder.Audio
 			}
 
 			m_recordingState = RecordingState.Recording;
+			m_waveIn.StartRecording();
 		}
 
 		public void StopRecording()
@@ -61,8 +74,8 @@ namespace VoiceRecorder.Audio
 				return;
 			}
 
-			m_waveIn.StopRecording();
 			m_recordingState = RecordingState.Stopped;
+			m_waveIn.StopRecording();
 		}
 
 		public void PauseRecording()
@@ -72,7 +85,7 @@ namespace VoiceRecorder.Audio
 				return;
 			}
 
-			m_recordingState = RecordingState.Stopped;
+			m_recordingState = RecordingState.Paused;
 			m_waveIn.StopRecording();
 		}
 
@@ -92,14 +105,14 @@ namespace VoiceRecorder.Audio
 
 		void OnDataAvailable(object sender, WaveInEventArgs e)
 		{
-			WriteToFile(e.Buffer, e.BytesRecorded);
+			m_memoryStream.Write(e.Buffer, 0, e.BytesRecorded);
 		}
 
 		private void WriteToFile(byte[] buffer, int bytesRecorded)
 		{
 			long maxFileLength = this.m_waveIn.WaveFormat.AverageBytesPerSecond * 60;
 
-			if (m_recordingState == RecordingState.Recording)
+			if (m_recordingState == RecordingState.Stopped)
 			{
 				var toWrite = (int)Math.Min(maxFileLength - m_writer.Length, bytesRecorded);
 				if (toWrite > 0)
