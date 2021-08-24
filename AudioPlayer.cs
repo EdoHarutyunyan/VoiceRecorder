@@ -14,7 +14,15 @@ namespace VoiceRecorder.Audio
 			CloseWaveOut();
 			CloseInStream();
 			inputStream.Position = 0;
-			inStream = new TrimWaveStream(new WaveFileReader(inputStream));
+
+			var waveFileReader = new RawSourceWaveStream(inputStream, new WaveFormat(44100, 1));
+			//waveOut = new WaveOut();
+
+			//waveOut.Init(waveFileReader);
+			//waveOut.Play();
+
+			//var reader = new Mp3FileReader(inputStream);
+			inStream = new TrimWaveStream(waveFileReader);
 		}
 
 		public void Play()

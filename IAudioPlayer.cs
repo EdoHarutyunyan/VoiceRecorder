@@ -6,7 +6,7 @@ namespace VoiceRecorder.Audio
 {
 	public interface IAudioPlayer : IDisposable
 	{
-		void LoadFile(WaveStream inputStream);
+		void LoadFile(Stream inputStream);
 		void Play();
 		void Stop();
 		TimeSpan CurrentPosition { get; set; }
