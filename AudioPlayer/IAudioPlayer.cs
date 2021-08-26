@@ -2,15 +2,16 @@
 using System.IO;
 using NAudio.Wave;
 
-namespace VoiceRecorder.Audio
+namespace VoiceRecorder.AudioPlayer
 {
 	public interface IAudioPlayer : IDisposable
 	{
+		void LoadFile(string path);
 		void LoadFile(Stream inputStream);
 		void Play();
 		void Stop();
-		TimeSpan CurrentPosition { get; set; }
-		TimeSpan StartPosition { get; set; }
-		TimeSpan EndPosition { get; set; }
+		void Pause();
+
+		public PlaybackState PlaybackState { get; }
 	}
 }

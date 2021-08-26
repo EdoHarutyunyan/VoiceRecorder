@@ -7,19 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="microphone.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NAudio" Version="2.0.1" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <Folder Include="Views\" />
+    <Resource Include="Icons\PauseImg.png" />
+    <Resource Include="Icons\PlayImg.png" />
+    <Resource Include="Icons\RecordImg.png" />
+    <Resource Include="Icons\StopImg.png" />
+    <Resource Include="Icons\MicroImg.png" />
+    <Resource Include="Icons\SettingsImg.png" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="microphone.png" />
-  </ItemGroup>
-
+  
 </Project>

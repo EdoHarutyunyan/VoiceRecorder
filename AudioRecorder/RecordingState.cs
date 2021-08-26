@@ -1,4 +1,4 @@
-﻿namespace VoiceRecorder.Audio
+﻿namespace VoiceRecorder.AudioRecorder
 {
 	public enum RecordingState
 	{

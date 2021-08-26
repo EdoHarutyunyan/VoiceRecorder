@@ -1,0 +1,24 @@
+﻿<Window x:Class="VoiceRecorder.Views.RecordSaveDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VoiceRecorder.Views"
+        mc:Ignorable="d"
+        Title="Save the recorded audio" Height="120" Width="300" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#FF6371DE">
+    <Grid>
+        <Grid.RowDefinitions>
+			<RowDefinition Height="auto"></RowDefinition>
+	        <RowDefinition Height="auto"></RowDefinition>
+        </Grid.RowDefinitions>
+
+		<StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+			<TextBlock Margin="10">Name</TextBlock>
+			<TextBox Name ="SavedName" Margin="10" Width="200"></TextBox>
+		</StackPanel>
+		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+			<Button Name="save" Click="Save_OnClick" Margin="10" Padding="5">Save</Button>
+			<Button Name="cancel" Click="Cancel_OnClick" Margin="10" Padding="5">Cancel</Button>
+		</StackPanel>
+    </Grid>
+</Window>
