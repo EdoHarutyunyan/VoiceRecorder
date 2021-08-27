@@ -16,7 +16,9 @@ namespace VoiceRecorder.AudioRecorder
 		public MemoryStream MemoryStream => m_memoryStream;
 
 		public int m_recordingDevice { get; set; }
-		public event EventHandler Stopped = delegate { };
+
+		private const int SAMPLE_RATE = 44100;
+		private const int CHANNELS = 1;
 
 		public AudioRecorder()
 		{
@@ -24,23 +26,8 @@ namespace VoiceRecorder.AudioRecorder
 			m_memoryStream = new MemoryStream();
 		}
 
-		private void InitializeRecorder()
-		{
-			m_waveIn = new WaveIn
-			{
-				WaveFormat = new WaveFormat(44100, 1),
-				DeviceNumber = m_recordingDevice
-			};
-			m_waveIn.DataAvailable += OnDataAvailable;
-			m_waveIn.RecordingStopped += OnRecordingStopped;
-		}
-
-		void OnRecordingStopped(object sender, StoppedEventArgs e)
-		{
-			Stopped(this, EventArgs.Empty);
-		}
-
-		public void StartRecording()
+		///<inheritdoc cref = "IAudioRecorder.Start()"/>
+		public void Start()
 		{
 			if (m_recordingState == RecordingState.Recording)
 			{
@@ -53,7 +40,8 @@ namespace VoiceRecorder.AudioRecorder
 			m_waveIn.StartRecording();
 		}
 
-		public void StopRecording()
+		///<inheritdoc cref = "IAudioRecorder.Stop()"/>
+		public void Stop()
 		{
 			if (m_recordingState == RecordingState.Stopped)
 			{
@@ -64,27 +52,54 @@ namespace VoiceRecorder.AudioRecorder
 			m_recordingState = RecordingState.Stopped;
 		}
 
-		public void PauseRecording()
+		///<inheritdoc cref = "IAudioRecorder.Pause()"/>
+		public void Pause()
 		{
 			if (m_recordingState == RecordingState.Stopped)
 			{
 				return;
 			}
 
-			m_recordingState = RecordingState.Paused;
 			m_waveIn.StopRecording();
+			m_recordingState = RecordingState.Paused;
 		}
 
+		///<inheritdoc cref = "IAudioRecorder.SaveRecord(string)"/>
+		public void SaveRecord(string path)
+		{
+			WriteToFile(m_memoryStream.GetBuffer(), (int)m_memoryStream.Length, path);
+			m_memoryStream.SetLength(0);
+		}
+
+		/// <summary>
+		/// Create and initialize new recorder
+		/// </summary>
+		private void InitializeRecorder()
+		{
+			m_waveIn = new WaveIn
+			{
+				WaveFormat = new WaveFormat(SAMPLE_RATE, CHANNELS),
+				DeviceNumber = m_recordingDevice
+			};
+			m_waveIn.DataAvailable += OnDataAvailable;
+		}
+
+		/// <summary>
+		/// This callback will be called when the new recording data is available
+		/// </summary>
 		void OnDataAvailable(object sender, WaveInEventArgs e)
 		{
 			m_memoryStream.Write(e.Buffer, 0, e.BytesRecorded);
 		}
 
+		/// <summary>
+		/// Write the recorded MemoryStream to the file by given <paramref name="path"/>
+		/// </summary>
 		private void WriteToFile(byte[] buffer, int bytesRecorded, string path)
 		{
 			long maxFileLength = m_waveIn.WaveFormat.AverageBytesPerSecond * 60;
 
-			if (m_recordingState == RecordingState.Stopped)
+			if (m_recordingState != RecordingState.Recording)
 			{
 				m_writer = new WaveFileWriter(path, m_waveIn.WaveFormat);
 
@@ -95,12 +110,6 @@ namespace VoiceRecorder.AudioRecorder
 
 				m_writer.Dispose();
 			}
-		}
-
-		public void SaveRecord(string path)
-		{
-			WriteToFile(m_memoryStream.GetBuffer(), (int)m_memoryStream.Length, path);
-			m_memoryStream.SetLength(0);
 		}
 	}
 }

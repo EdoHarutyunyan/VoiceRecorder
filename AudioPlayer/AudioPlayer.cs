@@ -1,24 +1,32 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NAudio.Wave;
-using VoiceRecorder.Audio;
 
 namespace VoiceRecorder.AudioPlayer
 {
 	public class AudioPlayer : IAudioPlayer
 	{
 		private WaveOut m_waveOut;
-		private TrimWaveStream m_inStream;
+		private ReadStream m_inStream;
 		
 		private const int SAMPLE_RATE = 44100;
 		private const int CHANNELS = 1;
 
+		public event EventHandler PlaybackStopped = delegate { };
+
+		public PlayerMode PlayerMode { get; set; } = PlayerMode.None;
+
+		public PlaybackState PlaybackState { get; private set; }
+
+		///<inheritdoc cref = "IAudioPlayer.LoadFile(string)"/>
 		public void LoadFile(string path)
 		{
 			CloseWaveOut();
 			CloseInStream();
-			m_inStream = new TrimWaveStream(new WaveFileReader(path));
+			m_inStream = new ReadStream(new WaveFileReader(path));
 		}
 
+		///<inheritdoc cref = "IAudioPlayer.LoadFile(Stream)"/>
 		public void LoadFile(Stream inputStream)
 		{
 			CloseWaveOut();
@@ -27,9 +35,10 @@ namespace VoiceRecorder.AudioPlayer
 
 			var waveFileReader = new RawSourceWaveStream(inputStream, new WaveFormat(SAMPLE_RATE, CHANNELS));
 
-			m_inStream = new TrimWaveStream(waveFileReader);
+			m_inStream = new ReadStream(waveFileReader);
 		}
 
+		///<inheritdoc cref = "IAudioPlayer.Play()"/>
 		public void Play()
 		{
 			if (PlaybackState == PlaybackState.Paused)
@@ -40,12 +49,37 @@ namespace VoiceRecorder.AudioPlayer
 			}
 
 			CreateWaveOut();
+
 			if (m_waveOut.PlaybackState == PlaybackState.Stopped)
 			{
 				m_inStream.Position = 0;
 				PlaybackState = PlaybackState.Playing;
 				m_waveOut.Play();
 			}
+		}
+
+		///<inheritdoc cref = "IAudioPlayer.Pause()"/>
+		public void Pause()
+		{
+			PlaybackState = PlaybackState.Paused;
+
+			m_waveOut.Pause();
+		}
+
+		///<inheritdoc cref = "IAudioPlayer.PlaybackStopped"/>
+		private void OnPlaybackStopped(object sender, StoppedEventArgs e)
+		{
+			// Set the player mode to PlayerMode.None to control the parallel playing 
+			PlayerMode = PlayerMode.None;
+
+			if (PlaybackState == PlaybackState.Paused)
+			{
+				return;
+			}
+
+			PlaybackStopped(this, EventArgs.Empty);
+
+			Dispose();
 		}
 
 		private void CreateWaveOut()
@@ -57,33 +91,6 @@ namespace VoiceRecorder.AudioPlayer
 				m_waveOut.PlaybackStopped += OnPlaybackStopped;
 			}
 		}
-
-		void OnPlaybackStopped(object sender, StoppedEventArgs e)
-		{
-			if (PlaybackState == PlaybackState.Paused)
-			{
-				return;
-			}
-
-			Dispose();
-		}
-
-		public void Stop()
-		{
-			PlaybackState = PlaybackState.Stopped;
-
-			m_waveOut.Stop();
-			m_inStream.Position = 0;
-		}
-
-		public void Pause()
-		{
-			PlaybackState = PlaybackState.Paused;
-
-			m_waveOut.Pause();
-		}
-
-		public PlaybackState PlaybackState { get; private set; }
 
 		public void Dispose()
 		{

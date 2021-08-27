@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VoiceRecorder.Views"
         mc:Ignorable="d"
-        Title="Save the recorded audio" Height="120" Width="300" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#FF6371DE">
+        Title="Save the recorded audio" Height="120" Width="300" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#FF276380">
     <Grid>
         <Grid.RowDefinitions>
 			<RowDefinition Height="auto"></RowDefinition>

@@ -22,6 +22,12 @@ namespace VoiceRecorder.Views
 
 		private void Save_OnClick(object sender, RoutedEventArgs e)
 		{
+			if (SavedName.Text.Length == 0)
+			{
+				MessageBox.Show("Please text the record name");
+				return;
+			}
+
 			DialogResult = true;
 			m_fileName = SavedName.Text + ".wav";
 		}

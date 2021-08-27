@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +31,19 @@ namespace VoiceRecorder
 			InitializeComponent();
 			InitializeInputDevices();
 			InitializeRecordLibrary();
+
+			m_audioPlayer.PlaybackStopped += OnPlaybackStopped;
+		}
+
+		/// <summary>
+		/// This callback will be called when the audio player is stopped by itself
+		/// to change the state of the player buttons.
+		/// </summary>
+		private void OnPlaybackStopped(object sender, EventArgs e)
+		{
+			RecordPause.IsEnabled = true;
+			PlayPauseImg.Source = ImageUtils.PlayImage;
+			PlayPauseSelectedRecordImg.Source = ImageUtils.PlayImage;
 		}
 
 		private void InitializeInputDevices()
@@ -67,18 +81,18 @@ namespace VoiceRecorder
 			if ((m_audioRecorder.RecordingState == RecordingState.Stopped) || 
 				(m_audioRecorder.RecordingState == RecordingState.Paused))
 			{
-				PlayPause.Visibility = Visibility.Visible;
 				PlayPause.IsEnabled = false;
+				PlayPause.Visibility = Visibility.Visible;
 				Stop.Visibility = Visibility.Visible;
 
 				RecordPauseImg.Source = ImageUtils.PauseImage;
-				m_audioRecorder.StartRecording();
+				m_audioRecorder.Start();
 			}
 			else if (m_audioRecorder.RecordingState == RecordingState.Recording)
 			{
 				PlayPause.IsEnabled = true;
 				RecordPauseImg.Source = ImageUtils.RecordImage;
-				m_audioRecorder.PauseRecording();
+				m_audioRecorder.Pause();
 			}
 		}
 
@@ -89,24 +103,47 @@ namespace VoiceRecorder
 
 		private void Stop_Click(object sender, RoutedEventArgs e)
 		{
-			PlayPause.IsEnabled = false;
 			RecordPauseImg.Source = ImageUtils.RecordImage;
+			PlayPauseImg.Source = ImageUtils.PlayImage;
 
-			m_audioRecorder.StopRecording();
+			if (m_audioRecorder.RecordingState == RecordingState.Recording)
+			{
+				m_audioRecorder.Stop();
+			}
+
+			if (m_audioPlayer.PlaybackState == PlaybackState.Playing)
+			{
+				m_audioPlayer.Pause();
+			}
 
 			RecordSaveDialog dialog = new RecordSaveDialog();
-			if (dialog.ShowDialog() == true)
+			if ((dialog.ShowDialog() == true) && (dialog.FileName != null))
 			{
 				m_audioRecorder.SaveRecord(dialog.FileName);
 				m_mainViewModel.Records.Add(dialog.FileName);
 
 				Records.ItemsSource = null;
 				Records.ItemsSource = m_mainViewModel.Records;
+
+				// If the current record is already saved then we need to go to the initial UI state
+				PlayPause.Visibility = Visibility.Collapsed;
+				Stop.Visibility = Visibility.Collapsed;
+			}
+			else
+			{
+				// If the save operation is canceled enable the play button
+				PlayPause.IsEnabled = true;
 			}
 		}
 
 		private void Play_Pause_Click(object sender, RoutedEventArgs e)
 		{
+			if (m_audioPlayer.PlayerMode == PlayerMode.SelectedRecord)
+			{
+				MessageBox.Show("Another record is playing...");
+				return;
+			}
+
 			if (m_audioPlayer.PlaybackState == PlaybackState.Playing)
 			{
 				RecordPause.IsEnabled = true;
@@ -126,22 +163,31 @@ namespace VoiceRecorder
 				m_audioPlayer.LoadFile(m_audioRecorder.MemoryStream);
 			}
 
+			// Set the player mode to PlayerMode.CurrentRecord to control the parallel playing 
+			m_audioPlayer.PlayerMode = PlayerMode.CurrentRecord;
+
 			m_audioPlayer.Play();
 		}
 
 		private void Play_Pause_Selected_Record_Click(object sender, RoutedEventArgs e)
 		{
+			if (Records.SelectedIndex == -1)
+			{
+				MessageBox.Show("Please select the record first");
+				return;
+			}
+
+			if (m_audioPlayer.PlayerMode == PlayerMode.CurrentRecord)
+			{
+				MessageBox.Show("Another record is playing...");
+				return;
+			}
+
 			if (m_audioPlayer.PlaybackState == PlaybackState.Playing)
 			{
 				PlayPauseSelectedRecordImg.Source = ImageUtils.PlayImage;
 
 				m_audioPlayer.Pause();
-				return;
-			}
-
-			if (Records.SelectedIndex == -1)
-			{
-				MessageBox.Show("Please select the record first");
 				return;
 			}
 
@@ -159,8 +205,9 @@ namespace VoiceRecorder
 				}
 			}
 
+			// Set the player mode to PlayerMode.SelectedRecord to control the parallel playing 
+			m_audioPlayer.PlayerMode = PlayerMode.SelectedRecord;
 			m_audioPlayer.Play();
-			//PlayPauseSelectedRecordImg.Source = ImageUtils.PlayImage;
 		}
 
 		private void Settings_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -17,6 +17,7 @@
     <Resource Include="Icons\StopImg.png" />
     <Resource Include="Icons\MicroImg.png" />
     <Resource Include="Icons\SettingsImg.png" />
+	<Resource Include="Icons\mic.ico" />
   </ItemGroup>
   
 </Project>
